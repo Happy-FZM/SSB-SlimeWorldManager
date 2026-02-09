@@ -134,16 +134,28 @@ public class SlimeWorldModule extends PluginModule {
     private ISlimeAdapter loadAdapter() {
         ISlimeAdapter slimeAdapter;
 
-        if (isClassLoaded("com.infernalsuite.asp.api.AdvancedSlimePaperAPI")) {
-            slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.asp4.SWMAdapter");
-        } else if (isClassLoaded("com.infernalsuite.aswm.api.AdvancedSlimePaperAPI")) {
-            slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.asp3.SWMAdapter");
-        } else if (isClassLoaded("com.infernalsuite.aswm.api.SlimePlugin")) {
-            slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.asp.SWMAdapter");
-        } else if (isClassLoaded("com.grinderwolf.swm.nms.world.AbstractSlimeNMSWorld")) {
-            slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.aswm.SWMAdapter");
-        } else {
-            slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.swm.SWMAdapter");
+        try {
+            if (isClassLoaded("com.infernalsuite.asp.api.AdvancedSlimePaperAPI")) {
+                slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.asp4.SWMAdapter");
+            } else if (isClassLoaded("com.infernalsuite.aswm.api.AdvancedSlimePaperAPI")) {
+                slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.asp3.SWMAdapter");
+            } else if (isClassLoaded("com.infernalsuite.aswm.api.SlimePlugin")) {
+                slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.asp.SWMAdapter");
+            } else if (isClassLoaded("com.grinderwolf.swm.nms.world.AbstractSlimeNMSWorld")) {
+                slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.aswm.SWMAdapter");
+            } else {
+                slimeAdapter = createAdapterInstance("com.bgsoftware.ssbslimeworldmanager.swm.impl.swm.SWMAdapter");
+            }
+        } catch (Throwable error) {
+            // An unexpected error occurred, we want to throw it again.
+            // However, in case of NoClassDefFoundError, this can happen if no adapter was found - in this case,
+            // we only want to return null and let the module abort.
+            // https://github.com/BG-Software-LLC/SSB-SlimeWorldManager/issues/93
+            if (error instanceof NoClassDefFoundError) {
+                slimeAdapter = null;
+            } else {
+                throw error;
+            }
         }
 
         return slimeAdapter;
